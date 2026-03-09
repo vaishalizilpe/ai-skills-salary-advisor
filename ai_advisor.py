@@ -1,8 +1,10 @@
 import anthropic
-from job_fetcher import fetch_jobs, extract_skills
 import os
+from job_fetcher import fetch_jobs, extract_skills
+
 os.environ["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY", "")
 
+def get_ai_advice(job_title, skill_count, your_skills):
     # Build context from real job data
     sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
     market_skills = [f"{skill} ({count} jobs)" for skill, count in sorted_skills[:15]]
