@@ -54,3 +54,16 @@ print("=" * 60)
 advice = get_ai_advice("Data Engineer", skill_count, your_skills)
 print(advice)
 print("=" * 60)
+
+if __name__ == "__main__":
+    print("Fetching live market data...")
+    jobs = fetch_jobs("data engineer", num_results=20)
+    skill_count = extract_skills(jobs)
+
+    your_skills = ["sql", "python", "dbt", "airflow", "snowflake", "tableau", "gcp"]
+
+    print("\n🤖 AI Career Advisor says:\n")
+    print("=" * 60)
+    advice = get_ai_advice("Data Engineer", skill_count, your_skills)
+    print(advice)
+    print("=" * 60)

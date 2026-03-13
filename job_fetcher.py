@@ -71,3 +71,8 @@ def show_insights(job_title, jobs, skill_count):
 jobs = fetch_jobs("data engineer", num_results=20)
 skill_count = extract_skills(jobs)
 show_insights("Data Engineer", jobs, skill_count)
+
+if __name__ == "__main__":
+    fetch_jobs("data engineer")
+    skill_count = extract_skills(jobs)
+    show_insights("Data Engineer", jobs, skill_count)
