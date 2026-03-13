@@ -1,4 +1,4 @@
-# 🤖 AI Skills & Salary Advisor
+# 🤖 AI Skills & Career Advisor
 
 A live job market analyzer that fetches real 2026 job postings and uses 
 Claude AI to give personalized, brutally honest career advice for data professionals.
