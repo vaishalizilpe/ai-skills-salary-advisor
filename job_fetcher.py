@@ -1,5 +1,7 @@
 import requests
-from config import ADZUNA_APP_ID, ADZUNA_API_KEY
+import os
+ADZUNA_APP_ID = os.environ.get("ADZUNA_APP_ID", "")
+ADZUNA_API_KEY = os.environ.get("ADZUNA_API_KEY", "")
 
 # Skills we want to detect in job descriptions
 SKILLS_TO_TRACK = [
@@ -67,12 +69,7 @@ def show_insights(job_title, jobs, skill_count):
         count = skill_count.get(skill, 0)
         print(f"  → {skill} — appears in {count} jobs")
 
-# Run it
-jobs = fetch_jobs("data engineer", num_results=20)
-skill_count = extract_skills(jobs)
-show_insights("Data Engineer", jobs, skill_count)
-
 if __name__ == "__main__":
-    fetch_jobs("data engineer")
+    jobs = fetch_jobs("data engineer", num_results=20)
     skill_count = extract_skills(jobs)
     show_insights("Data Engineer", jobs, skill_count)
