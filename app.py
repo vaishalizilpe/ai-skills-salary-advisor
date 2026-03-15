@@ -1,10 +1,18 @@
 import streamlit as st
 import os
 
+
 # Load secrets (works locally and on Streamlit Cloud)
-os.environ["ANTHROPIC_API_KEY"] = st.secrets.get("ANTHROPIC_API_KEY", os.environ.get("ANTHROPIC_API_KEY", ""))
-os.environ["ADZUNA_APP_ID"] = st.secrets.get("ADZUNA_APP_ID", os.environ.get("ADZUNA_APP_ID", ""))
-os.environ["ADZUNA_API_KEY"] = st.secrets.get("ADZUNA_API_KEY", os.environ.get("ADZUNA_API_KEY", ""))
+try:
+    os.environ["ADZUNA_APP_ID"] = st.secrets["ADZUNA_APP_ID"]
+    os.environ["ADZUNA_API_KEY"] = st.secrets["ADZUNA_API_KEY"]
+    os.environ["ANTHROPIC_API_KEY"] = st.secrets["ANTHROPIC_API_KEY"]
+except KeyError as e:
+    st.error(f"Missing secret: {e}. Check your Streamlit secrets configuration.")
+    st.stop()
+# os.environ["ANTHROPIC_API_KEY"] = st.secrets.get("ANTHROPIC_API_KEY", os.environ.get("ANTHROPIC_API_KEY", ""))
+# os.environ["ADZUNA_APP_ID"] = st.secrets.get("ADZUNA_APP_ID", os.environ.get("ADZUNA_APP_ID", ""))
+# os.environ["ADZUNA_API_KEY"] = st.secrets.get("ADZUNA_API_KEY", os.environ.get("ADZUNA_API_KEY", ""))
 
 from job_fetcher import fetch_jobs, extract_skills
 from ai_advisor import get_ai_advice
