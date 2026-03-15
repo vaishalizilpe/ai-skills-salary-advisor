@@ -1,6 +1,6 @@
 import anthropic
 import os
-from job_fetcher import fetch_jobs, extract_skills
+from job_fetcher import fetch_jobs, extract_skills_with_ai
 
 os.environ["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY", "")
 
