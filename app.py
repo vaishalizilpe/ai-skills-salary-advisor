@@ -122,9 +122,25 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # INPUTS
+
+JOB_TITLES = sorted([
+    "Data Engineer", "Senior Data Engineer", "Staff Data Engineer",
+    "Analytics Engineer", "Senior Analytics Engineer", "Staff Analytics Engineer",
+    "Data Scientist", "Senior Data Scientist", "Machine Learning Engineer",
+    "AI Engineer", "ML Platform Engineer", "Data Platform Engineer",
+    "AI Product Analyst", "Business Intelligence Engineer", "BI Developer",
+    "Data Analyst", "Senior Data Analyst", "Product Analyst",
+    "Data Architect", "Cloud Data Engineer", "ETL Developer",
+    "LLM Engineer", "AI/ML Data Engineer", "Generative AI Engineer"
+])
+
 st.markdown('<div class="input-label">Target Role</div>', unsafe_allow_html=True)
-st.markdown('<div class="input-hint">What job title are you applying for or transitioning into?</div>', unsafe_allow_html=True)
-job_title = st.text_input("", placeholder="e.g. Data Engineer, Analytics Engineer, AI Engineer", label_visibility="collapsed")
+st.markdown('<div class="input-hint">Select the role you are applying for or transitioning into.</div>', unsafe_allow_html=True)
+job_title = st.selectbox(
+    "",
+    options=[""] + JOB_TITLES,
+    label_visibility="collapsed"
+)
 
 SKILLS_LIST = sorted([
     "Python", "SQL", "Spark", "PySpark", "Kafka", "Airflow", "dbt", "Snowflake",
