@@ -26,7 +26,11 @@ def fetch_jobs(job_title, num_results=20):
 
     response = requests.get(url, params=params)
     data = response.json()
+    if "results" not in data:
+        print(f"API error response: {data}")
+        return []
     return data["results"]
+
 
 def extract_skills(jobs):
     skill_count = {}
