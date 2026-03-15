@@ -1,5 +1,6 @@
 import requests
 import os
+
 ADZUNA_APP_ID = os.environ.get("ADZUNA_APP_ID", "")
 ADZUNA_API_KEY = os.environ.get("ADZUNA_API_KEY", "")
 
@@ -27,18 +28,15 @@ def fetch_jobs(job_title, num_results=20):
     response = requests.get(url, params=params)
 
     if response.status_code != 200:
-        print(f"API error: status {response.status_code}, body: {response.text}")
-        return []
+        raise Exception(f"Adzuna API error: status {response.status_code} | body: {response.text[:200]}")
 
     try:
         data = response.json()
     except Exception as e:
-        print(f"JSON decode error: {e}, raw response: {response.text}")
-        return []
+        raise Exception(f"JSON decode failed: {e} | raw: {response.text[:200]}")
 
     if "results" not in data:
-        print(f"No results key in response: {data}")
-        return []
+        raise Exception(f"No results key in response: {str(data)[:200]}")
 
     return data["results"]
 
@@ -54,12 +52,12 @@ def extract_skills(jobs):
 
     return skill_count
 
+
 def show_insights(job_title, jobs, skill_count):
     print(f"=== Market Insights for: {job_title} ===")
     print(f"Jobs analyzed: {len(jobs)}")
     print()
 
-    # Sort skills by frequency
     sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
 
     print("🔥 Most In-Demand Skills:")
@@ -69,7 +67,6 @@ def show_insights(job_title, jobs, skill_count):
 
     print()
 
-    # Skills you already have
     your_skills = ["sql", "python", "dbt", "airflow", "snowflake", "tableau", "gcp"]
     missing = [s for s, c in sorted_skills[:15] if s not in your_skills]
 
@@ -83,6 +80,7 @@ def show_insights(job_title, jobs, skill_count):
     for skill in missing[:5]:
         count = skill_count.get(skill, 0)
         print(f"  → {skill} — appears in {count} jobs")
+
 
 if __name__ == "__main__":
     jobs = fetch_jobs("data engineer", num_results=20)

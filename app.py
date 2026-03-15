@@ -392,8 +392,12 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         your_skills = [s.strip().lower() for s in your_skills_input.split(",")]
 
         with st.spinner("Pulling live job market data..."):
-            jobs = fetch_jobs(job_title, num_results=20)
-            skill_count = extract_skills(jobs)
+            try:
+                jobs = fetch_jobs(job_title, num_results=20)
+                skill_count = extract_skills(jobs)
+            except Exception as e:
+                st.error(f"API Error: {e}")
+                st.stop()
 
         sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
         total_jobs = len(jobs)
