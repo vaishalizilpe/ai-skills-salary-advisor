@@ -1,20 +1,14 @@
 import requests
 import os
+import anthropic
+import json
 
 ADZUNA_APP_ID = os.environ.get("ADZUNA_APP_ID", "")
 ADZUNA_API_KEY = os.environ.get("ADZUNA_API_KEY", "")
 
-# Skills we want to detect in job descriptions
-SKILLS_TO_TRACK = [
-    "python", "sql", "spark", "kafka", "airflow", "dbt",
-    "snowflake", "databricks", "aws", "gcp", "azure",
-    "docker", "kubernetes", "terraform", "pandas", "pyspark",
-    "redshift", "bigquery", "looker", "tableau", "powerbi",
-    "langchain", "llm", "ai", "machine learning", "mlflow"
-]
 
 def fetch_jobs(job_title, num_results=20):
-    print(f"Fetching live jobs for: {job_title}...\n")
+    print(f"Fetching live jobs for: {job_title}...")
 
     url = "https://api.adzuna.com/v1/api/jobs/us/search/1"
     params = {
@@ -41,48 +35,55 @@ def fetch_jobs(job_title, num_results=20):
     return data["results"]
 
 
-def extract_skills(jobs):
-    skill_count = {}
+def extract_skills_with_ai(jobs):
+    """Use Claude to dynamically extract skills from job descriptions."""
 
-    for job in jobs:
-        description = job["description"].lower()
-        for skill in SKILLS_TO_TRACK:
-            if skill in description:
-                skill_count[skill] = skill_count.get(skill, 0) + 1
+    all_descriptions = ""
+    for i, job in enumerate(jobs):
+        desc = job.get("description", "")[:500]
+        all_descriptions += f"Job {i+1}: {desc}\n\n"
 
-    return skill_count
+    prompt = f"""You are analyzing {len(jobs)} real job postings.
 
+Here are the job descriptions:
+{all_descriptions}
 
-def show_insights(job_title, jobs, skill_count):
-    print(f"=== Market Insights for: {job_title} ===")
-    print(f"Jobs analyzed: {len(jobs)}")
-    print()
+Extract ALL technical skills, tools, languages, platforms, and frameworks mentioned across these job postings.
+Count how many job postings mention each skill.
 
-    sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
+Return ONLY a valid JSON object like this example:
+{{"python": 14, "sql": 12, "spark": 8, "aws": 10, "dbt": 6}}
 
-    print("🔥 Most In-Demand Skills:")
-    for skill, count in sorted_skills[:10]:
-        bar = "█" * count
-        print(f"  {skill:<20} {bar} ({count} jobs)")
+Rules:
+- Lowercase all skill names
+- Normalize variations: "apache spark" -> "spark", "power bi" -> "powerbi", "amazon web services" -> "aws"
+- Only include technical skills, not soft skills
+- Return ONLY the JSON object, no explanation, no markdown, no backticks
+"""
 
-    print()
+    client = anthropic.Anthropic()
+    message = client.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}]
+    )
 
-    your_skills = ["sql", "python", "dbt", "airflow", "snowflake", "tableau", "gcp"]
-    missing = [s for s, c in sorted_skills[:15] if s not in your_skills]
+    raw = message.content[0].text.strip()
 
-    print("✅ Your skills that are in demand:")
-    for skill, count in sorted_skills:
-        if skill in your_skills:
-            print(f"  ✓ {skill} — appears in {count} jobs")
-
-    print()
-    print("🚀 Top skills to learn next (gaps):")
-    for skill in missing[:5]:
-        count = skill_count.get(skill, 0)
-        print(f"  → {skill} — appears in {count} jobs")
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError:
+        import re
+        match = re.search(r'\{.*\}', raw, re.DOTALL)
+        if match:
+            return json.loads(match.group())
+        raise Exception(f"Claude returned invalid JSON: {raw[:200]}")
 
 
 if __name__ == "__main__":
     jobs = fetch_jobs("data engineer", num_results=20)
-    skill_count = extract_skills(jobs)
-    show_insights("Data Engineer", jobs, skill_count)
+    skill_count = extract_skills_with_ai(jobs)
+    sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
+    print("Top skills:")
+    for skill, count in sorted_skills[:15]:
+        print(f"  {skill}: {count}")
