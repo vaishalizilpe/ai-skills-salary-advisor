@@ -26,21 +26,21 @@ def fetch_jobs(job_title, num_results=20):
 
     response = requests.get(url, params=params)
 
-if response.status_code != 200:
-    print(f"API error: status {response.status_code}, body: {response.text}")
-    return []
+    if response.status_code != 200:
+        print(f"API error: status {response.status_code}, body: {response.text}")
+        return []
 
-try:
-    data = response.json()
-except Exception as e:
-    print(f"JSON decode error: {e}, raw response: {response.text}")
-    return []
+    try:
+        data = response.json()
+    except Exception as e:
+        print(f"JSON decode error: {e}, raw response: {response.text}")
+        return []
 
-if "results" not in data:
-    print(f"No results key in response: {data}")
-    return []
+    if "results" not in data:
+        print(f"No results key in response: {data}")
+        return []
 
-return data["results"]
+    return data["results"]
 
 
 def extract_skills(jobs):
