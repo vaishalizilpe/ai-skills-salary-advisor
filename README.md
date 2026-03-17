@@ -1,5 +1,7 @@
 # AI Career Intelligence — Skills & Salary Advisor
 
+**[🚀 Live Demo → ai-skills-career-advisor.streamlit.app](https://ai-skills-career-advisor.streamlit.app)**
+
 A live job market analyzer that fetches real job postings, uses Claude AI to extract in-demand skills, and gives personalized career advice for data professionals.
 
 ## Features
