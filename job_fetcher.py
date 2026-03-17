@@ -41,6 +41,50 @@ def fetch_jobs(job_title, num_results=20, salary_min=None, salary_max=None, loca
     return data["results"]
 
 
+def fetch_salary_estimate(job_title, location=None):
+    """Lightweight fetch to estimate market salary for a role + location."""
+    url = "https://api.adzuna.com/v1/api/jobs/us/search/1"
+    params = {
+        "app_id": ADZUNA_APP_ID,
+        "app_key": ADZUNA_API_KEY,
+        "results_per_page": 20,
+        "what": job_title,
+        "content-type": "application/json",
+    }
+    if location:
+        params["where"] = location
+
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        return None
+
+    try:
+        data = response.json()
+    except Exception:
+        return None
+
+    salaries = []
+    for job in data.get("results", []):
+        lo = job.get("salary_min")
+        hi = job.get("salary_max")
+        if lo and hi:
+            salaries.append((lo + hi) / 2)
+        elif lo:
+            salaries.append(lo)
+        elif hi:
+            salaries.append(hi)
+
+    if not salaries:
+        return None
+
+    return {
+        "avg": int(sum(salaries) / len(salaries)),
+        "low": int(min(salaries)),
+        "high": int(max(salaries)),
+        "count": len(salaries),
+    }
+
+
 def extract_skills_with_ai(jobs):
     """Use Claude to dynamically extract skills from job descriptions."""
 

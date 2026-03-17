@@ -10,7 +10,7 @@ except KeyError as e:
     st.error(f"Missing secret: {e}. Check your Streamlit secrets configuration.")
     st.stop()
 
-from job_fetcher import fetch_jobs, extract_skills_with_ai
+from job_fetcher import fetch_jobs, extract_skills_with_ai, fetch_salary_estimate
 from ai_advisor import get_ai_advice
 
 st.set_page_config(
@@ -184,6 +184,22 @@ location_selection = st.selectbox(
     label_visibility="collapsed",
 )
 location = None if location_selection == "All US" else location_selection
+
+if job_title:
+    @st.cache_data(show_spinner=False)
+    def get_salary_estimate(role, loc):
+        return fetch_salary_estimate(role, loc)
+
+    est = get_salary_estimate(job_title, location)
+    if est:
+        loc_label = location if location else "the US"
+        st.markdown(
+            f'<div class="rate-badge">💰 Market avg for <strong>{job_title}</strong> in {loc_label}: '
+            f'~<strong>${est["avg"]:,}</strong> &nbsp;·&nbsp; range ${est["low"]:,} – ${est["high"]:,} '
+            f'({est["count"]} postings)</div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown("<br>", unsafe_allow_html=True)
 
 st.markdown('<div class="input-label">Salary Range (USD / year)</div>', unsafe_allow_html=True)
 st.markdown('<div class="input-hint">Filter jobs by salary. Drag to set your range.</div>', unsafe_allow_html=True)
