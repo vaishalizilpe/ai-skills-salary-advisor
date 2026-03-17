@@ -154,7 +154,7 @@ SKILLS_LIST = sorted([
 ])
 
 LOCATIONS = [
-    "Nationwide (No Filter)",
+    "All US",
     "Remote",
     "New York, NY",
     "San Francisco, CA",
@@ -183,7 +183,7 @@ location_selection = st.selectbox(
     options=LOCATIONS,
     label_visibility="collapsed",
 )
-location = None if location_selection == "Nationwide (No Filter)" else location_selection
+location = None if location_selection == "All US" else location_selection
 
 st.markdown('<div class="input-label">Salary Range (USD / year)</div>', unsafe_allow_html=True)
 st.markdown('<div class="input-hint">Filter jobs by salary. Drag to set your range.</div>', unsafe_allow_html=True)
@@ -241,12 +241,58 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         total_jobs = len(jobs)
 
         salary_label = f"${salary_range[0]:,} – ${salary_range[1]:,}"
-        location_label = location if location else "Nationwide"
+        location_label = location if location else "All US"
         st.markdown(f"""
         <div class="results-header">
-            ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · {location_label} · Salary: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
+            ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · {location_label} · Salary filter: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
         </div>
         """, unsafe_allow_html=True)
+
+        # Average salary from job results
+        salaries = []
+        for job in jobs:
+            lo = job.get("salary_min")
+            hi = job.get("salary_max")
+            if lo and hi:
+                salaries.append((lo + hi) / 2)
+            elif lo:
+                salaries.append(lo)
+            elif hi:
+                salaries.append(hi)
+
+        if salaries:
+            avg_salary = int(sum(salaries) / len(salaries))
+            min_sal = int(min(salaries))
+            max_sal = int(max(salaries))
+            st.markdown(f"""
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-left:3px solid #16a34a;border-radius:0 10px 10px 0;
+                        padding:1rem 1.25rem;margin:0.75rem 0 1.25rem 0;">
+                <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#15803d;margin-bottom:0.5rem;">
+                    💰 Reported Salary — {job_title} · {location_label}
+                </div>
+                <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:1.4rem;font-weight:700;color:#14532d;font-family:'DM Mono',monospace;">${avg_salary:,}</div>
+                        <div style="font-size:0.72rem;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;">Avg salary</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.4rem;font-weight:700;color:#14532d;font-family:'DM Mono',monospace;">${min_sal:,}</div>
+                        <div style="font-size:0.72rem;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;">Low</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.4rem;font-weight:700;color:#14532d;font-family:'DM Mono',monospace;">${max_sal:,}</div>
+                        <div style="font-size:0.72rem;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;">High</div>
+                    </div>
+                    <div>
+                        <div style="font-size:1.4rem;font-weight:700;color:#14532d;font-family:'DM Mono',monospace;">{len(salaries)}</div>
+                        <div style="font-size:0.72rem;color:#16a34a;text-transform:uppercase;letter-spacing:0.06em;">Jobs with salary data</div>
+                    </div>
+                </div>
+                <div style="font-size:0.72rem;color:#86efac;margin-top:0.5rem;">Based on postings reporting salary within your filter range</div>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown('<p style="color:#94a3b8;font-size:0.82rem;margin-bottom:1rem;">No salary data reported in these postings.</p>', unsafe_allow_html=True)
 
         st.markdown('<div class="section-title">🔥 Most In-Demand Skills Right Now</div>', unsafe_allow_html=True)
         for skill, count in sorted_skills[:12]:
@@ -297,6 +343,10 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
             "total_jobs": total_jobs,
             "location": location_label,
             "salary_range": salary_range,
+            "avg_salary": int(sum(salaries) / len(salaries)) if salaries else None,
+            "min_salary": int(min(salaries)) if salaries else None,
+            "max_salary": int(max(salaries)) if salaries else None,
+            "salary_data_count": len(salaries),
             "sorted_skills": sorted_skills,
             "your_matched": your_matched,
             "missing": missing,
@@ -312,6 +362,8 @@ if "last_results" in st.session_state:
         f"Jobs Analyzed: {r['total_jobs']}",
         f"Location: {r['location']}",
         f"Salary Filter: ${r['salary_range'][0]:,} – ${r['salary_range'][1]:,}",
+        f"Avg Reported Salary: ${r['avg_salary']:,}" if r['avg_salary'] else "Avg Reported Salary: No data",
+        f"Salary Range (from postings): ${r['min_salary']:,} – ${r['max_salary']:,}" if r['avg_salary'] else "",
         "",
         "=== TOP IN-DEMAND SKILLS ===",
     ]
