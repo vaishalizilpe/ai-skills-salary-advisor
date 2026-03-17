@@ -153,6 +153,18 @@ SKILLS_LIST = sorted([
     "Dataiku", "Alteryx", "SAS", "R", "Scala", "Git", "CI/CD", "Collibra"
 ])
 
+st.markdown('<div class="input-label">Salary Range (USD / year)</div>', unsafe_allow_html=True)
+st.markdown('<div class="input-hint">Filter jobs by salary. Drag to set your range.</div>', unsafe_allow_html=True)
+salary_range = st.slider(
+    "",
+    min_value=40_000,
+    max_value=300_000,
+    value=(80_000, 200_000),
+    step=5_000,
+    format="$%d",
+    label_visibility="collapsed",
+)
+
 st.markdown('<div class="input-label">Your Current Skills</div>', unsafe_allow_html=True)
 st.markdown('<div class="input-hint">Search and select all that apply. No typos possible.</div>', unsafe_allow_html=True)
 selected_skills = st.multiselect(
@@ -181,7 +193,7 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
 
         with st.spinner("Fetching live job postings..."):
             try:
-                jobs = fetch_jobs(job_title, num_results=20)
+                jobs = fetch_jobs(job_title, num_results=20, salary_min=salary_range[0], salary_max=salary_range[1])
             except Exception as e:
                 st.error(f"API Error: {e}")
                 st.stop()
@@ -196,9 +208,10 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
         total_jobs = len(jobs)
 
+        salary_label = f"${salary_range[0]:,} – ${salary_range[1]:,}"
         st.markdown(f"""
         <div class="results-header">
-            ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · {len(skill_count)} unique skills detected by Claude AI
+            ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · Salary: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
         </div>
         """, unsafe_allow_html=True)
 
@@ -244,6 +257,48 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
 
         st.markdown(f'<div class="ai-advice-box">{advice}</div>', unsafe_allow_html=True)
         st.caption(f"Request {st.session_state.request_count} of {MAX_REQUESTS} used this session.")
+
+        # Store results for download
+        st.session_state.last_results = {
+            "job_title": job_title,
+            "total_jobs": total_jobs,
+            "salary_range": salary_range,
+            "sorted_skills": sorted_skills,
+            "your_matched": your_matched,
+            "missing": missing,
+            "advice": advice,
+        }
+
+if "last_results" in st.session_state:
+    r = st.session_state.last_results
+    lines = [
+        f"AI Career Advisor — Results Report",
+        f"Generated: {__import__('datetime').date.today()}",
+        f"Role: {r['job_title']}",
+        f"Jobs Analyzed: {r['total_jobs']}",
+        f"Salary Filter: ${r['salary_range'][0]:,} – ${r['salary_range'][1]:,}",
+        "",
+        "=== TOP IN-DEMAND SKILLS ===",
+    ]
+    for skill, count in r["sorted_skills"][:12]:
+        pct = int((count / max(r["total_jobs"], 1)) * 100)
+        lines.append(f"  {skill}: {count}/{r['total_jobs']} jobs ({pct}%)")
+    lines += ["", "=== SKILLS YOU ALREADY HAVE ==="]
+    for skill, count in r["your_matched"]:
+        lines.append(f"  {skill} ({count} jobs)")
+    lines += ["", "=== TOP GAPS TO CLOSE ==="]
+    for skill, count in r["missing"][:8]:
+        lines.append(f"  {skill} ({count} jobs)")
+    lines += ["", "=== CLAUDE AI CAREER ASSESSMENT ===", r["advice"]]
+
+    report = "\n".join(lines)
+    st.download_button(
+        label="⬇  Download Results as .txt",
+        data=report,
+        file_name=f"career_analysis_{r['job_title'].replace(' ', '_').lower()}.txt",
+        mime="text/plain",
+        use_container_width=True,
+    )
 
 # FOOTER
 st.markdown("""

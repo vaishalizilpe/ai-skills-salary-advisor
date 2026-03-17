@@ -7,7 +7,7 @@ ADZUNA_APP_ID = os.environ.get("ADZUNA_APP_ID", "")
 ADZUNA_API_KEY = os.environ.get("ADZUNA_API_KEY", "")
 
 
-def fetch_jobs(job_title, num_results=20):
+def fetch_jobs(job_title, num_results=20, salary_min=None, salary_max=None):
     print(f"Fetching live jobs for: {job_title}...")
 
     url = "https://api.adzuna.com/v1/api/jobs/us/search/1"
@@ -18,6 +18,10 @@ def fetch_jobs(job_title, num_results=20):
         "what": job_title,
         "content-type": "application/json"
     }
+    if salary_min is not None:
+        params["salary_min"] = salary_min
+    if salary_max is not None:
+        params["salary_max"] = salary_max
 
     response = requests.get(url, params=params)
 
