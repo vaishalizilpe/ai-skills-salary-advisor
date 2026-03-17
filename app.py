@@ -256,11 +256,12 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         sorted_skills = sorted(skill_count.items(), key=lambda x: x[1], reverse=True)
         total_jobs = len(jobs)
 
-        salary_label = f"${salary_range[0]:,} – ${salary_range[1]:,}"
+        salary_label = f"${salary_range[0]:,} - ${salary_range[1]:,}"
         location_label = location if location else "All US"
         st.markdown(f"""
         <div class="results-header">
             ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · {location_label} · Salary filter: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
+            <span style="float:right;font-size:0.68rem;opacity:0.5;font-weight:400;">via Adzuna Jobs API</span>
         </div>
         """, unsafe_allow_html=True)
 
