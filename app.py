@@ -153,13 +153,37 @@ SKILLS_LIST = sorted([
     "Dataiku", "Alteryx", "SAS", "R", "Scala", "Git", "CI/CD", "Collibra"
 ])
 
+LOCATIONS = [
+    "Nationwide (No Filter)",
+    "Remote",
+    "New York, NY",
+    "San Francisco, CA",
+    "Seattle, WA",
+    "Austin, TX",
+    "Chicago, IL",
+    "Boston, MA",
+    "Los Angeles, CA",
+    "Denver, CO",
+    "Atlanta, GA",
+    "Dallas, TX",
+    "Washington, DC",
+    "Miami, FL",
+    "Minneapolis, MN",
+    "Portland, OR",
+    "San Diego, CA",
+    "Phoenix, AZ",
+    "Charlotte, NC",
+    "Nashville, TN",
+]
+
 st.markdown('<div class="input-label">Location</div>', unsafe_allow_html=True)
-st.markdown('<div class="input-hint">City, state, or "Remote". Leave blank to search nationwide.</div>', unsafe_allow_html=True)
-location = st.text_input(
+st.markdown('<div class="input-hint">Select a city or search nationwide.</div>', unsafe_allow_html=True)
+location_selection = st.selectbox(
     "",
-    placeholder="e.g. New York, San Francisco, Remote",
+    options=LOCATIONS,
     label_visibility="collapsed",
 )
+location = None if location_selection == "Nationwide (No Filter)" else location_selection
 
 st.markdown('<div class="input-label">Salary Range (USD / year)</div>', unsafe_allow_html=True)
 st.markdown('<div class="input-hint">Filter jobs by salary. Drag to set your range.</div>', unsafe_allow_html=True)
@@ -217,7 +241,7 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         total_jobs = len(jobs)
 
         salary_label = f"${salary_range[0]:,} – ${salary_range[1]:,}"
-        location_label = location.strip() if location and location.strip() else "Nationwide"
+        location_label = location if location else "Nationwide"
         st.markdown(f"""
         <div class="results-header">
             ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · {location_label} · Salary: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
