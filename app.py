@@ -153,6 +153,14 @@ SKILLS_LIST = sorted([
     "Dataiku", "Alteryx", "SAS", "R", "Scala", "Git", "CI/CD", "Collibra"
 ])
 
+st.markdown('<div class="input-label">Location</div>', unsafe_allow_html=True)
+st.markdown('<div class="input-hint">City, state, or "Remote". Leave blank to search nationwide.</div>', unsafe_allow_html=True)
+location = st.text_input(
+    "",
+    placeholder="e.g. New York, San Francisco, Remote",
+    label_visibility="collapsed",
+)
+
 st.markdown('<div class="input-label">Salary Range (USD / year)</div>', unsafe_allow_html=True)
 st.markdown('<div class="input-hint">Filter jobs by salary. Drag to set your range.</div>', unsafe_allow_html=True)
 salary_range = st.slider(
@@ -193,7 +201,7 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
 
         with st.spinner("Fetching live job postings..."):
             try:
-                jobs = fetch_jobs(job_title, num_results=20, salary_min=salary_range[0], salary_max=salary_range[1])
+                jobs = fetch_jobs(job_title, num_results=20, salary_min=salary_range[0], salary_max=salary_range[1], location=location or None)
             except Exception as e:
                 st.error(f"API Error: {e}")
                 st.stop()
@@ -209,9 +217,10 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         total_jobs = len(jobs)
 
         salary_label = f"${salary_range[0]:,} – ${salary_range[1]:,}"
+        location_label = location.strip() if location and location.strip() else "Nationwide"
         st.markdown(f"""
         <div class="results-header">
-            ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · Salary: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
+            ✓ Analyzed {total_jobs} live job postings for <strong>{job_title}</strong> · {location_label} · Salary: {salary_label} · {len(skill_count)} unique skills detected by Claude AI
         </div>
         """, unsafe_allow_html=True)
 
@@ -262,6 +271,7 @@ if st.button("▶  Analyze My Market Position", type="primary", use_container_wi
         st.session_state.last_results = {
             "job_title": job_title,
             "total_jobs": total_jobs,
+            "location": location_label,
             "salary_range": salary_range,
             "sorted_skills": sorted_skills,
             "your_matched": your_matched,
@@ -276,6 +286,7 @@ if "last_results" in st.session_state:
         f"Generated: {__import__('datetime').date.today()}",
         f"Role: {r['job_title']}",
         f"Jobs Analyzed: {r['total_jobs']}",
+        f"Location: {r['location']}",
         f"Salary Filter: ${r['salary_range'][0]:,} – ${r['salary_range'][1]:,}",
         "",
         "=== TOP IN-DEMAND SKILLS ===",
